@@ -13,10 +13,12 @@ Vagrant::Config.run do |config|
   #
   #   {
   #     :test => {
-  #       :hostname => 'test.virtual.vstone.eu',
-  #       :ip       => '192.168.100.10',
-  #       :forwards => { 80 => 20080, 443 => 20443, },
-  #       :box      => 'custom',
+  #       :hostname     => 'test.virtual.vstone.eu',
+  #       :ip           => '192.168.100.10',
+  #       :forwards     => { 80 => 20080, 443 => 20443, },
+  #       :box          => 'custom',
+  #       :customize    => [ '--name', 'Test Box', '--memory', 1024, ],
+  #       :environment  => 'develop',
   #     },
   #     :default => {
   #       :hostname => 'default.virtual.vstone.eu',
@@ -33,6 +35,8 @@ Vagrant::Config.run do |config|
     :default => {
       :hostname => 'default.virtual.vstone.eu',
     },
+
+    ## No vms after this point :)
   }.each do |name,cfg|
     config.vm.define name do |vm_config|
       vm_config.vm.host_name = cfg[:hostname] if cfg[:hostname]
@@ -45,8 +49,19 @@ Vagrant::Config.run do |config|
         end
       end
 
+      customize = ["modifyvm", :id] + (cfg[:modify] || [])
+      if ! customize.include?("--name")
+        # Add the name of the box to the vm-name in
+        # VirtualBox so we can identify it easily in the GUI.
+        customize += ["--name",
+          File.basename(File.dirname(__FILE__)) +
+          "-#{name}" + "_#{Time.now.to_i}" ]
+      end
+      vm_config.vm.customize customize
+
       vm_config.vm.provision :shell do |shell|
         shell.path = "scripts/run_puppet.sh"
+        shell.args = cfg[:environment] if cfg[:environment]
       end
     end
   end

@@ -4,6 +4,8 @@ echo "#########################################################"
 echo "# Running on `hostname -f`"
 echo "#########################################################"
 
+environment="${1-production}"
+
 ## We also need the puppet folder
 [ -d /etc/puppet ] || mkdir /etc/puppet
 
@@ -12,6 +14,7 @@ rsync -alrcWt --del --progress --exclude=.git --exclude=.svn /vagrant/puppet/* /
 
 #  --debug --verbose \
 exec puppet  apply \
+  --environment ${environment} \
   --debug --verbose --trace \
   --graph --graphdir /vagrant/graphs \
   --modulepath /etc/puppet/modules/upstream:/etc/puppet/modules/internal:/etc/puppet/modules/dev  \
