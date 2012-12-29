@@ -4,3 +4,8 @@
 # vagrant files
 .vagrant
 
+# puppet graphs
+graphs/
+
+# extra packages
+packages/
